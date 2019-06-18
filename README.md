@@ -21,23 +21,23 @@ Named as `MSMenuItem`. It have almost same property.
 
 Registration API has `ms_` prefix.
 
-| MenuSupport                             | ActionMenu                                 |
-| --------------------------------------- | ------------------------------------------ |
-| **ms_**registerAction:title:canPerform: | registerAction:title:canPerform:           |
-| N/A                                     | registerAction:title:canPerform:forPlugin: |
+| MenuSupport                           | ActionMenu                                 |
+| ------------------------------------- | ------------------------------------------ |
+| `ms_`registerAction:title:canPerform: | registerAction:title:canPerform:           |
+| N/A                                   | registerAction:title:canPerform:forPlugin: |
 
 ### Textual API for UIResponder
 
 Textual API has `ms_` prefix without cached APIs.
 
-| MenuSupport                          | ActionMenu                          |
-| ------------------------------------ | ----------------------------------- |
-| **ms_**textualRepresentation         | textualRepresentation               |
-| **ms_**selectedTextualRepresentation | selectedTextualRepresentation       |
-| N/A                                  | cachedTextualRepresentation         |
-| N/A                                  | cachedSelectedTextualRepresentation |
-| N/A                                  | actionMenuBehaviors                 |
-| N/A                                  | always                              |
+| MenuSupport                        | ActionMenu                          |
+| ---------------------------------- | ----------------------------------- |
+| `ms_`textualRepresentation         | textualRepresentation               |
+| `ms_`selectedTextualRepresentation | selectedTextualRepresentation       |
+| N/A                                | cachedTextualRepresentation         |
+| N/A                                | cachedSelectedTextualRepresentation |
+| N/A                                | actionMenuBehaviors                 |
+| N/A                                | always                              |
 
 ### UIAlertView API
 
@@ -46,14 +46,14 @@ UIAlertView is deprecated from iOS 8, not provide API for it.
 ### Preference key
 
 
-| key              | MenuSupport                              | ActionMenu                                 |
-| ---------------- | ---------------------------------------- | ------------------------------------------ |
-| defaults         | **jp.r-plus.MenuSupport**                | com.booleanmagic.ActionMenu                |
-| key              | **MS**PluginEnabled-<PluginName\>        | AMPluginEnabled-<PluginName\>              |
-| PostNotification | **jp.r-plus.MenuSupport**.settingschange | com.booleanmagic.ActionMenu.settingschange |
+| key              | MenuSupport                            | ActionMenu                                 |
+| ---------------- | -------------------------------------- | ------------------------------------------ |
+| defaults         | `jp.r-plus.MenuSupport`                | com.booleanmagic.ActionMenu                |
+| key              | `MS`PluginEnabled-<PluginName\>        | AMPluginEnabled-<PluginName\>              |
+| PostNotification | `jp.r-plus.MenuSupport`.settingschange | com.booleanmagic.ActionMenu.settingschange |
 
 ### Install path
 
-| MenuSupport                      | ActionMenu                  |
-| -------------------------------- | --------------------------- |
-| /Library/**MenuSupport**/Plugins | /Library/ActionMenu/Plugins |
+| MenuSupport                    | ActionMenu                  |
+| ------------------------------ | --------------------------- |
+| /Library/`MenuSupport`/Plugins | /Library/ActionMenu/Plugins |
