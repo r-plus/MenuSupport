@@ -1,14 +1,14 @@
 # MenuSupport
 
-Simply plugin loader for iOS system menu. APIs designed easy to migration from ActionMenu.
+Simply plugin loader for iOS system menu. APIs designed easy to migration from Action Menu.
 
-## What's the difference with ActionMenu
+## What's the difference with Action Menu
 
 ### Protocol
 
 Named as `MSMenuItem`. It have almost same property.
 
-| MenuSupport     | ActionMenu            |
+| MenuSupport     | Action Menu           |
 | --------------- | --------------------- |
 | SEL action      | SEL action            |
 | SEL canPerform  | SEL canPerform        |
@@ -21,7 +21,7 @@ Named as `MSMenuItem`. It have almost same property.
 
 Registration API has `ms_` prefix.
 
-| MenuSupport                           | ActionMenu                                 |
+| MenuSupport                           | Action Menu                                |
 | ------------------------------------- | ------------------------------------------ |
 | `ms_`registerAction:title:canPerform: | registerAction:title:canPerform:           |
 | N/A                                   | registerAction:title:canPerform:forPlugin: |
@@ -30,7 +30,7 @@ Registration API has `ms_` prefix.
 
 Textual API has `ms_` prefix without cached APIs.
 
-| MenuSupport                        | ActionMenu                          |
+| MenuSupport                        | Action Menu                         |
 | ---------------------------------- | ----------------------------------- |
 | `ms_`textualRepresentation         | textualRepresentation               |
 | `ms_`selectedTextualRepresentation | selectedTextualRepresentation       |
@@ -46,7 +46,7 @@ UIAlertView is deprecated from iOS 8, not provide API for it.
 ### Preference key
 
 
-| key              | MenuSupport                            | ActionMenu                                 |
+| key              | MenuSupport                            | Action Menu                                |
 | ---------------- | -------------------------------------- | ------------------------------------------ |
 | defaults         | `jp.r-plus.MenuSupport`                | com.booleanmagic.ActionMenu                |
 | key              | `MS`PluginEnabled-<PluginName\>        | AMPluginEnabled-<PluginName\>              |
@@ -54,6 +54,12 @@ UIAlertView is deprecated from iOS 8, not provide API for it.
 
 ### Install path
 
-| MenuSupport                    | ActionMenu                  |
+| MenuSupport                    | Action Menu                 |
 | ------------------------------ | --------------------------- |
 | /Library/`MenuSupport`/Plugins | /Library/ActionMenu/Plugins |
+
+### Depend bundleIdentifier
+
+| MenuSupport             | Action Menu |
+| ----------------------- | ----------- |
+| `jp.r-plus.menusupport` | actionmenu  |
