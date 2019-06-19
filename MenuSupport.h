@@ -2,27 +2,29 @@
 
 @protocol MSMenuItem <NSObject>
 /// Selector that will be sent to the target when menu item is pressed
-@property (nonatomic, readonly, assign) SEL action;
+@property (nonnull, nonatomic, readonly, assign) SEL action;
 /// Selector that will be sent to the target to query whether menu item is valid
-@property (nonatomic, readonly, assign) SEL canPerform;
+@property (nonnull, nonatomic, readonly, assign) SEL canPerform;
 /// Localized title of the menu item
-@property (nonatomic, readwrite, retain) NSString *title;
+@property (nonnull, nonatomic, readwrite, retain) NSString *title;
 /// Image that will be used to display the menu item
-@property (nonatomic, readwrite, retain) UIImage *image;
+@property (nullable, nonatomic, readwrite, retain) UIImage *image;
 @end
 
 // Plugin Registration function
 @interface UIMenuController (MenuSupport)
+/// Useful method for show any view.
++ (nullable UIWindow *)frontmostWindow;
 /// - action: will be sent to the target when the menu item has been pressed
 /// - title: localized title of the menu item
 /// - canPerform: will be sent to the target when the menu is about to be shown and we need to know if the menu item is valid
-- (id<MSMenuItem>)ms_registerAction:(SEL)action title:(NSString *)title canPerform:(SEL)canPerform;
+- (nonnull id<MSMenuItem>)ms_registerAction:(nonnull SEL)action title:(nonnull NSString *)title canPerform:(nonnull SEL)canPerform;
 @end
 
 @interface UIResponder (MenuSupport)
 /// full text in the selectable view.
-- (NSString *)ms_textualRepresentation;
+- (nullable NSString *)ms_textualRepresentation;
 /// selected text; return nil if no selection.
-- (NSString *)ms_selectedTextualRepresentation;
+- (nullable NSString *)ms_selectedTextualRepresentation;
 @end
 

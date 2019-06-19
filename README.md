@@ -43,8 +43,15 @@ Textual API has `ms_` prefix without cached APIs.
 
 UIAlertView is deprecated from iOS 8, not provide API for it.
 
-### Preference key
+### Frontmost window API
 
+This is useful new API for plugin that show custom view to frontmost screen.
+
+| MenuSupport     | Action Menu |
+| --------------- | ----------- |
+| frontmostWindow | N/A         |
+
+### Preference key
 
 | key              | MenuSupport                            | Action Menu                                |
 | ---------------- | -------------------------------------- | ------------------------------------------ |
