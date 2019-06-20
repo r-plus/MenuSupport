@@ -9,7 +9,6 @@ static NSDictionary *pref;
 static BOOL enabled = YES;;
 static BOOL useImage = YES;
 static BOOL isFirstLoad = YES;
-static BOOL styleChanged = NO;
 
 // interfaces {{{
 @interface _UICalloutBarSystemButtonDescription : NSObject
@@ -34,6 +33,10 @@ static BOOL styleChanged = NO;
 + (id)buttonDescriptionWithTitle:(NSString *)arg1 action:(SEL)arg2 type:(int)arg3;
 - (id)initWithTitle:(id)arg1 orImage:(id)arg2 action:(SEL)arg3 type:(int)arg4;
 @property (nonatomic, readonly) SEL action;
+@end
+
+@interface UICalloutBar
++ (void)_releaseSharedInstance;
 @end
 
 @interface WKContentView
@@ -244,26 +247,8 @@ static NSString *Invoke(UIResponder *self, NSString *(*function)(id<UITextInput>
 
 // menu injection
 %hook UICalloutBar // {{{
-static void ReloadPluginDescriptions(UICalloutBar *self)
-{
-    MSMenuPluginManager *m = [MSMenuPluginManager sharedInstance];
-    NSMutableArray *a = MSHookIvar<NSMutableArray*>(self, "m_systemButtonDescriptions");
-    NSArray<NSString *> *pluginActions = [m.plugins valueForKey:@"actionString"];
-    [a enumerateObjectsUsingBlock:^(_UICalloutBarSystemButtonDescription *d, NSUInteger idx, BOOL *stop) {
-        NSUInteger index = [pluginActions indexOfObject:NSStringFromSelector(d.action)];
-        if (index == NSNotFound) { return; }
-        _UICalloutBarSystemButtonDescription *newDesc = [m.plugins[index] buttonDescription];
-        DLog(@"replaced: %@", NSStringFromSelector(d.action));
-        [a replaceObjectAtIndex:idx withObject:newDesc];
-    }];
-}
 - (void)updateAvailableButtons
 {
-    // reload for dynamic style change between Title <-> Icon
-    if (styleChanged) {
-        ReloadPluginDescriptions(self);
-        styleChanged = NO;
-    }
     if (!enabled || !isFirstLoad) { return %orig; }
 
     isFirstLoad = NO;
@@ -278,20 +263,24 @@ static void ReloadPluginDescriptions(UICalloutBar *self)
         if ([ext isEqualToString:@"bundle"]) {
             NSString *path = [NSString stringWithFormat:@"%@%@", PLUGINS_DIR_PATH, item];
             NSBundle *bundle = [NSBundle bundleWithPath:path];
-            NSError *e = nil;
-            BOOL result = [bundle loadAndReturnError:&e];
-            DLog(@"loaded bundle: %@, %d, %@", bundle, result, e);
-            NSUInteger afCount = m.plugins.count;
-            if (result && bfCount + 1 == afCount) {
-                m.plugins.lastObject.filename = filename;
-            } else {
-                NSLog(@"MenuSupport bundle loading error: %@", e);
+            if (!bundle.isLoaded) {
+                NSError *e = nil;
+                BOOL result = [bundle loadAndReturnError:&e];
+                DLog(@"loaded bundle: %@, %d, %@", bundle, result, e);
+                // FIXME: more robust way to assign filename to plugin model instance.
+                NSUInteger afCount = m.plugins.count;
+                if (result && bfCount + 1 == afCount) {
+                    m.plugins.lastObject.filename = filename;
+                } else {
+                    NSLog(@"MenuSupport bundle loading error: %@", e);
+                }
             }
         } else if ([ext isEqualToString:@"dylib"]) {
             NSString *path = [NSString stringWithFormat:@"%@%@", PLUGINS_DIR_PATH, item];
             const char *filepath = path.UTF8String;
             DLog(@"loading dylib: %@", path);
             void *handle = dlopen(filepath, RTLD_LAZY);
+            // FIXME: more robust way to assign filename to plugin model instance.
             NSUInteger afCount = m.plugins.count;
             if (handle && bfCount + 1 == afCount) {
                 m.plugins.lastObject.filename = filename;
@@ -343,6 +332,46 @@ static void ReloadPluginDescriptions(UICalloutBar *self)
     return %orig;
 }
 %end // }}}
+// stock system menu iconable
+%hook _UICalloutBarSystemButtonDescription // {{{
++ (id)buttonDescriptionWithTitle:(NSString *)title action:(SEL)action type:(int)type
+{
+    if (!useImage || !enabled) { return %orig; }
+
+    NSString *a = NSStringFromSelector(action);
+    UIImage *img = nil;
+    if ([a isEqualToString:@"cut:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Cut.png"];
+    } else if ([a isEqualToString:@"copy:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Copy.png"];
+    } else if ([a isEqualToString:@"select:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Select.png"];
+    } else if ([a isEqualToString:@"selectAll:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/SelectAll.png"];
+    } else if ([a isEqualToString:@"paste:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Paste.png"];
+    } else if ([a isEqualToString:@"delete:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Delete.png"];
+    } else if ([a isEqualToString:@"_promptForReplace:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Replace.png"];
+    } else if ([a isEqualToString:@"_lookup:"] || [a isEqualToString:@"_define:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Define.png"];
+    } else if ([a isEqualToString:@"_addShortcut:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/UserShortcut.png"];
+    } else if ([a isEqualToString:@"_accessibilitySpeak:"] || [a isEqualToString:@"_accessibilitySpeakLanguageSelection:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Speak.png"];
+    } else if ([a isEqualToString:@"_accessibilityPauseSpeaking:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Pause.png"];
+    } else if ([a isEqualToString:@"_share:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Share.png"];
+    }
+    // _transliterateChinese and _insertDrawing are not support yet.
+    if (img) {
+        return [self buttonDescriptionWithImage:img action:action type:type];
+    }
+    return %orig;
+}
+%end // }}}
 
 // MARK: - Constractor
 
@@ -354,10 +383,14 @@ static void LoadSettings()
     id existEnabled = [pref objectForKey:@"Enabled"];
     enabled = existEnabled ? [existEnabled boolValue] : YES;
     id existUseImage = [pref objectForKey:@"UseImage"];
-    BOOL _useImage = existUseImage ? [existUseImage boolValue] : YES;
-    if (!styleChanged)
-        styleChanged = useImage != _useImage;
-    useImage = _useImage;
+    useImage = existUseImage ? [existUseImage boolValue] : YES;
+
+    // to reset style.
+    if ([%c(UICalloutBar) respondsToSelector:@selector(_releaseSharedInstance)]) {
+        [%c(UICalloutBar) _releaseSharedInstance];
+        // to re-register plugin description.
+        isFirstLoad = YES;
+    }
 }
 static void ChangeNotification(CFNotificationCenterRef center, void *observer, CFStringRef name, const void *object, CFDictionaryRef userInfo)
 {
