@@ -16,5 +16,9 @@ before-all::
 	$(ECHO_NOTHING)echo " coping header to theos linclude directory..."$(ECHO_END)
 	$(ECHO_NOTHING)cp -a MenuSupport.h $(THEOS)/include/$(ECHO_END)
 
+stage::
+	mkdir -p $(THEOS_STAGING_DIR)/usr/include
+	$(ECHO_NOTHING)cp -a MenuSupport.h $(THEOS_STAGING_DIR)/usr/include $(ECHO_END)
+
 after-install::
 	install.exec "killall -9 SpringBoard"
