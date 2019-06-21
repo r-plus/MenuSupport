@@ -70,3 +70,8 @@ This is useful new API for plugin that show custom view to frontmost screen.
 | MenuSupport             | Action Menu |
 | ----------------------- | ----------- |
 | `jp.r-plus.menusupport` | actionmenu  |
+
+## Sample plugin
+
+- [Maps MenuSupport Plugin](https://github.com/r-plus/Maps-MenuSupport-Plugin)
+    - [Migration commits from Action Menu](https://github.com/r-plus/Maps-MenuSupport-Plugin/compare/actionmenu...master)
