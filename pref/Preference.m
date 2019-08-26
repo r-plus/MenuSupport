@@ -6,6 +6,10 @@
 #define LOG_PATH @"/var/mobile/Library/Safari/menusupport.pref.log"
 #import <DLog.h>
 
+@interface PSSpecifier (Add)
+@property (nonatomic) SEL buttonAction;
+@end
+
 @interface MSRootListController : PSListController
 @property (nonatomic, strong) NSMutableDictionary *pref;
 @end
