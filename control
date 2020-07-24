@@ -1,7 +1,7 @@
 Package: jp.r-plus.menusupport
 Name: MenuSupport
 Depends: mobilesubstrate, firmware (>= 11.0)
-Version: 1.0
+Version: 1.0.1
 Architecture: iphoneos-arm
 Description: Simply plugin loader for iOS system menu.
 Maintainer: r_plus
