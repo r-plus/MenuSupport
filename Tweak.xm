@@ -39,7 +39,7 @@ static BOOL isFirstLoad = YES;
 + (void)_releaseSharedInstance;
 @end
 
-@interface WKContentView
+@interface WKContentView : UIView
 - (NSString *)selectedText;
 @end
 
@@ -216,8 +216,16 @@ static NSString *Invoke(UIResponder *self, NSString *(*function)(id<UITextInput>
         DLog(@"UIWebView: %@", result);
     } else if ([self isKindOfClass:%c(WKWebView)]) {
         // WKWebView (tested on Safari - Normal webpage and GitHub comment form)
-        result = [[(WKWebView *)self _currentContentView] selectedText];
-        DLog(@"WKWebView: %@", result);
+        WKContentView *cv = [(WKWebView *)self _currentContentView];
+        if ([cv isKindOfClass:%c(WKContentView)]) {
+            result = [cv selectedText];
+            DLog(@"WKWebView: %@, %@", result, self);
+        } else {
+            // https://github.com/r-plus/MenuSupport/issues/1
+            // at least since iOS 12, _currentContentView return _UISizeTrackingView instance
+            // when page is PDF. I'm not sure how to get selectedText string in that situation.
+            NSLog(@"MenuSupport: currently not support for PDF");
+        }
     } else if ([self isKindOfClass:%c(WKContentView)]) {
         // WKContentView (from doc)
         result = [(WKContentView *)self selectedText];
