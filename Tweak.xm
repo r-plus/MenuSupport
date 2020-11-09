@@ -29,6 +29,7 @@ static BOOL isFirstLoad = YES;
 // +title=読み上げ…, 5
 // +title=一時停止, 5
 // +title=共有…, 0
++ (id)buttonDescriptionWithTitle:(id)arg1 action:(SEL)arg2 type:(int)arg3 requiresAuthenticatedTouch:(BOOL)arg4; // iOS 14+
 + (id)buttonDescriptionWithImage:(UIImage *)arg1 action:(SEL)arg2 type:(int)arg3;
 + (id)buttonDescriptionWithTitle:(NSString *)arg1 action:(SEL)arg2 type:(int)arg3;
 - (id)initWithTitle:(id)arg1 orImage:(id)arg2 action:(SEL)arg3 type:(int)arg4;
@@ -341,11 +342,9 @@ static NSString *Invoke(UIResponder *self, NSString *(*function)(id<UITextInput>
 }
 %end // }}}
 // stock system menu iconable
-%hook _UICalloutBarSystemButtonDescription // {{{
-+ (id)buttonDescriptionWithTitle:(NSString *)title action:(SEL)action type:(int)type
+// functions {{{
+static UIImage *MenuImageFromAction(SEL action)
 {
-    if (!useImage || !enabled) { return %orig; }
-
     NSString *a = NSStringFromSelector(action);
     UIImage *img = nil;
     if ([a isEqualToString:@"cut:"]) {
@@ -374,6 +373,27 @@ static NSString *Invoke(UIResponder *self, NSString *(*function)(id<UITextInput>
         img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Share.png"];
     }
     // _transliterateChinese and _insertDrawing are not support yet.
+    return img;
+}
+// }}}
+%hook _UICalloutBarSystemButtonDescription // {{{
+// iOS 14+
++ (id)buttonDescriptionWithTitle:(id)title action:(SEL)action type:(int)type requiresAuthenticatedTouch:(BOOL)require
+{
+    id orig = %orig;
+    if (!useImage || !enabled) { return orig; }
+
+    UIImage *img = MenuImageFromAction(action);
+    // respect `requiresAuthenticatedTouch` value for future security.
+    MSHookIvar<UIImage *>(orig, "m_image") = img;
+    return orig;
+}
+
++ (id)buttonDescriptionWithTitle:(NSString *)title action:(SEL)action type:(int)type
+{
+    if (!useImage || !enabled) { return %orig; }
+
+    UIImage *img = MenuImageFromAction(action);
     if (img) {
         return [self buttonDescriptionWithImage:img action:action type:type];
     }
