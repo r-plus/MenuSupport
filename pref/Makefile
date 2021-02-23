@@ -1,5 +1,5 @@
 ARCHS = arm64 arm64e
-TARGET = iphone:clang:11.2:11.0
+TARGET = iphone:clang:11.4:11.0
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = MenuSupportSettings
