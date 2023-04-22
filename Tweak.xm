@@ -1,6 +1,7 @@
 #import "MenuSupport.h"
 #import "define.h"
 #import <WebKit/WebKit.h>
+#import <Firmware.h>
 
 #define LOG_PATH @"/var/mobile/Library/Safari/menusupport.log"
 #import <DLog.h>
@@ -64,6 +65,21 @@ static BOOL isFirstLoad = YES;
 @interface UIWindow()
 + (NSArray *)allWindowsIncludingInternalWindows:(BOOL)arg1 onlyVisibleWindows:(BOOL)arg2;
 @end
+
+// for Xcode 11.7 with iOS 11.4 sdk
+#ifndef ROOTLESS
+@interface UIImageConfiguration : NSObject
+@end
+
+@interface UIImageSymbolConfiguration : UIImageConfiguration
++ (UIImageSymbolConfiguration *)configurationWithPointSize:(CGFloat)pointSize;
+@end
+
+@interface UIImage()
++ (UIImage *)systemImageNamed:(NSString *)name withConfiguration:(UIImageConfiguration *)configuration;
+- (UIImage *)imageWithTintColor:(UIColor *)color renderingMode:(UIImageRenderingMode)renderingMode;
+@end
+#endif
 // }}}
 
 // MARK: - Private Class
@@ -170,7 +186,9 @@ static MSMenuPluginManager *sharedInstance = nil;
     if ([bundleIdentifier isEqualToString:@"com.apple.SafariViewService"]) {
         if (!isShowingKeyboard) {
             // non keyboard showing. "_UIHostedWindow"
+            #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
             return [UIApplication sharedApplication].keyWindow;
+            #pragma GCC diagnostic warning "-Wdeprecated-declarations"
         }
     }
 
@@ -212,7 +230,9 @@ static NSString *Invoke(UIResponder *self, NSString *(*function)(id<UITextInput>
     NSString *result = nil;
     if ([self isKindOfClass:%c(UIWebView)]) {
         // UIWebView (tested on Byline)
+        #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
         id<UITextInput> v = [(UIWebView *)self _documentView];
+        #pragma GCC diagnostic warning "-Wdeprecated-declarations"
         result = (*function)(v);
         DLog(@"UIWebView: %@", result);
     } else if ([self isKindOfClass:%c(WKWebView)]) {
@@ -347,6 +367,7 @@ static UIImage *MenuImageFromAction(SEL action)
 {
     NSString *a = NSStringFromSelector(action);
     UIImage *img = nil;
+    // list of selector for menu: System/Library/Frameworks/WebKit/UIResponderStandardEditActions-Protocol.h
     if ([a isEqualToString:@"cut:"]) {
         img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Cut.png"];
     } else if ([a isEqualToString:@"copy:"]) {
@@ -359,6 +380,8 @@ static UIImage *MenuImageFromAction(SEL action)
         img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Paste.png"];
     } else if ([a isEqualToString:@"delete:"]) {
         img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Delete.png"];
+    } else if ([a isEqualToString:@"_translate:"]) {
+        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Translate.png"];
     } else if ([a isEqualToString:@"_promptForReplace:"]) {
         img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Replace.png"];
     } else if ([a isEqualToString:@"_lookup:"] || [a isEqualToString:@"_define:"]) {
@@ -370,14 +393,25 @@ static UIImage *MenuImageFromAction(SEL action)
     } else if ([a isEqualToString:@"_accessibilityPauseSpeaking:"]) {
         img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Pause.png"];
     } else if ([a isEqualToString:@"_share:"]) {
-        img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Share.png"];
+        if (kCFCoreFoundationVersionNumber >= kCFCoreFoundationVersionNumber_iOS_13_0) {
+            img = [[UIImage systemImageNamed:@"square.and.arrow.up"
+                          withConfiguration:[%c(UIImageSymbolConfiguration) configurationWithPointSize:18.0]]
+                         imageWithTintColor:UIColor.whiteColor renderingMode:UIImageRenderingModeAlwaysOriginal];
+        } else {
+            img = [UIImage imageWithContentsOfFile:PLUGINS_DIR_PATH @"/Share.png"];
+        }
     }
     // _transliterateChinese and _insertDrawing are not support yet.
     return img;
 }
 // }}}
 %hook _UICalloutBarSystemButtonDescription // {{{
-// iOS 14+
+// iOS 15.4+
+// + (id)buttonDescriptionWithTitle:(id)title image:(id)image action:(SEL)action type:(int)type
+// `captureTextFromCamera:` action by this method already have image.
+
+// iOS 14 only
+// `paste:` action back to using `buttonDescriptionWithTitle:action:type:` method.
 + (id)buttonDescriptionWithTitle:(id)title action:(SEL)action type:(int)type requiresAuthenticatedTouch:(BOOL)require
 {
     id orig = %orig;
@@ -394,6 +428,7 @@ static UIImage *MenuImageFromAction(SEL action)
     if (!useImage || !enabled) { return %orig; }
 
     UIImage *img = MenuImageFromAction(action);
+    DLog(@"action: %@, image: %@", NSStringFromSelector(action), img);
     if (img) {
         return [self buttonDescriptionWithImage:img action:action type:type];
     }
@@ -432,4 +467,3 @@ static void ChangeNotification(CFNotificationCenterRef center, void *observer, C
     }
 }
 // }}}
-

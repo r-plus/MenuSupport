@@ -49,6 +49,9 @@
         donation.buttonAction = @selector(donation:);
         [specs addObject:donation];
 
+        PSSpecifier *license = [PSSpecifier preferenceSpecifierNamed:@"License" target:self set:NULL get:NULL detail:NSClassFromString(@"MenuSupportLicenseViewController") cell:PSLinkCell edit:Nil];
+        [specs addObject:license];
+
         _specifiers = specs;
     }
 
@@ -105,4 +108,17 @@
         notify_post([settingsChangeNotification UTF8String]);
 }
 
+@end
+
+__attribute__((visibility("hidden")))
+@interface MenuSupportLicenseViewController: PSListController
+@end
+
+@implementation MenuSupportLicenseViewController
+- (id)specifiers {
+    if (!_specifiers) {
+        _specifiers = [[self loadSpecifiersFromPlistName:@"License" target:self] retain];
+    }
+    return _specifiers;
+}
 @end

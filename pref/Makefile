@@ -1,5 +1,14 @@
+ifeq ($(ROOTLESS),1)
+	THEOS_PACKAGE_SCHEME = rootless
+endif
+
+ifeq ($(THEOS_PACKAGE_SCHEME),rootless)
+	TARGET = iphone:clang:14.4:15.0
+else
+	TARGET = iphone:clang:11.4:11.0
+endif
 ARCHS = arm64 arm64e
-TARGET = iphone:clang:11.4:11.0
+
 include $(THEOS)/makefiles/common.mk
 
 BUNDLE_NAME = MenuSupportSettings
